@@ -22,25 +22,77 @@ app.get("/",(req,res)=>{
  
 })
 
-// Image storage Engine:
-const storage = multer.diskStorage({
-    destination:'./upload/images',
-    filename: (req,file,cb)=>{
-        return cb(null,`${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+
+
+
+
+
+// // Image storage Engine:
+// const storage = multer.diskStorage({
+//     destination:'./upload/images',
+//     filename: (req,file,cb)=>{
+//         return cb(null,`${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+//     }
+// })
+
+// const upload = multer({storage:storage})
+
+// //Creating Upload Endpoints for images
+// app.use('/images',express.static('upload/images'))
+
+// app.post("/upload",upload.single('product'),(req,res)=>{
+//     res.json({
+//         success:1,
+//         image_url:`${process.env.BASE_URL}/images/${req.file.filename}`
+//     })
+// })
+
+
+
+
+
+
+
+
+
+
+
+// Cloudinary configuration
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Cloudinary storage
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'ecommerce-products',
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
     }
-})
+});
 
-const upload = multer({storage:storage})
+const upload = multer({ storage: storage });
 
-//Creating Upload Endpoints for images
-app.use('/images',express.static('upload/images'))
-
-app.post("/upload",upload.single('product'),(req,res)=>{
+// Creating Upload Endpoint for images
+app.post("/upload", upload.single('product'), (req, res) => {
     res.json({
-        success:1,
-        image_url:`${process.env.BASE_URL}/images/${req.file.filename}`
+        success: 1,
+        image_url: req.file.path
     })
 })
+
+
+
+
+
+
+
+
 //Schema for Creating Products:
 const Product = mongoose.model("Product",{
     id:{
